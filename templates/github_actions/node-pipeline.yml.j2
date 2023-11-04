@@ -1,0 +1,68 @@
+name: {{ workflow_name }}
+
+on:
+{%- for trigger in triggers %}
+  {{ trigger }}:
+    branches: [ main, develop ]
+{%- endfor %}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '{{ node_version }}'
+    
+    - name: Cache node modules
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: {% raw %}${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}{% endraw %}
+        restore-keys: |
+          {% raw %}${{ runner.os }}-node-{% endraw %}
+    
+    - name: Install dependencies
+      run: |
+        {% if package_manager == 'npm' %}
+        npm ci
+        {% elif package_manager == 'yarn' %}
+        yarn install --frozen-lockfile
+        {% elif package_manager == 'pnpm' %}
+        pnpm install --frozen-lockfile
+        {% endif %}
+    
+    {% if has_tests %}
+    - name: Run tests
+      run: |
+        {% if package_manager == 'npm' %}
+        npm test
+        {% elif package_manager == 'yarn' %}
+        yarn test
+        {% elif package_manager == 'pnpm' %}
+        pnpm test
+        {% endif %}
+    {% endif %}
+    
+    - name: Build
+      run: |
+        {% if package_manager == 'npm' %}
+        npm run build
+        {% elif package_manager == 'yarn' %}
+        yarn build
+        {% elif package_manager == 'pnpm' %}
+        pnpm build
+        {% endif %}
+    
+    {% if security.get('snyk_enabled', False) %}
+    - name: Run Snyk scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: {% raw %}${{ secrets.SNYK_TOKEN }}{% endraw %}
+      continue-on-error: true
+    {% endif %}

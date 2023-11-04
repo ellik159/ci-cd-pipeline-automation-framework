@@ -1,0 +1,31 @@
+name: {{ workflow_name }}
+
+on:
+{%- for trigger in triggers %}
+  {{ trigger }}:
+    branches: [ main, develop ]
+{%- endfor %}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup environment
+      run: |
+        echo "Setting up build environment..."
+    
+    {% if has_tests %}
+    - name: Run tests
+      run: |
+        echo "Running tests..."
+        # Add your test command here
+    {% endif %}
+    
+    - name: Build
+      run: |
+        echo "Building project..."
+        # Add your build command here
