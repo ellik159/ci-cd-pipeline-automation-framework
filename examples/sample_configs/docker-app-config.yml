@@ -1,0 +1,12 @@
+pipeline:
+  name: "Docker App Pipeline"
+  triggers:
+    - push
+
+security:
+  trivy_enabled: true
+  snyk_enabled: false
+  sast_enabled: false
+
+runtime:
+  python_version: "3.9"

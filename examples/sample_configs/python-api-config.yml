@@ -1,0 +1,16 @@
+pipeline:
+  name: "Python API Pipeline"
+  triggers:
+    - push
+    - pull_request
+
+security:
+  trivy_enabled: true
+  snyk_enabled: true
+  sast_enabled: true
+
+runtime:
+  python_version: "3.10"
+
+notifications:
+  slack_webhook: ${SLACK_WEBHOOK}
